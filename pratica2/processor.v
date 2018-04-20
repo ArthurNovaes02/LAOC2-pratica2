@@ -5,19 +5,19 @@ module proc (DIN, Resetn, Clock, Run, Done, BusWires);
 	output [15:0] BusWires;
 	wire [15:0]IRout;
 	wire [15:0]Q;
+	wire [9:0]IR;
+	wire [2:0]I;
 	//... declare variables
 	wire Clear = 1; //limpa
 
-	regn IR(DIN, IRin, Clock, IRout);
-
+	regn IRinstance(DIN, 1, Clock, IR);
+	assign I = IR[9:6];
 	upcount Tstep (Clear, Clock, Tstep_Q);
+	
+	dec3to8 decX (IR[2:0], 1'b1, Xreg);
+	dec3to8 decY (IR[5:3], 1'b1, Yreg);
 
-	assign I = IR[1:3];
-
-	dec3to8 decX (IR[4:6], 1'b1, Xreg);
-	dec3to8 decY (IR[7:9], 1'b1, Yreg);
-
-	//Unidadede controle dos est�gios
+	//Unidadede controle dos estagios
 	always @(Tstep_Q or I or Xreg or Yreg) begin
 		//... specify initial values
 		case (Tstep_Q)
@@ -26,7 +26,25 @@ module proc (DIN, Resetn, Clock, Run, Done, BusWires);
 					IRin = 1'b1;
 				end
 			2'b01: //define signals in time step 1
-				case (I)
+				case (I) //qual instrucao sera executada
+				Dado1, Dado2, iControl, Clock, Q
+					3'b000://soma
+						Ula somaInstance(Xreg, Yreg, I, );
+					3'b000://sub
+						Ula subInstance(Xreg, Yreg, I, );
+					3'b000://or
+						Ula orInstance(Xreg, Yreg, I, );
+					3'b000://slt
+						Ula sltInstance(Xreg, Yreg, I, );
+					3'b000://sll
+						Ula sllsomaInstance(Xreg, Yreg, I, );
+					3'b000://srl
+						Ula slrsomaInstance(Xreg, Yreg, I, );
+					3'b000://mv
+						Xreg = Yreg;
+					3'b000://mvi
+						Xreg = IR[2:0];
+						
 				endcase
 			2'b10: //define signals in time step 2
 				case (I)
@@ -48,6 +66,7 @@ module proc (DIN, Resetn, Clock, Run, Done, BusWires);
 	regn reg_0 (BusWires, Rin[7], Clock, R7);
 	//... instantiate other registers and the adder/subtracter unit
 	//... define the bus
+	//Dado1, Dado2, iControl, Clock, Q
 endmodule
 
 //Contador do processador
@@ -90,7 +109,7 @@ endmodule
 
 //Instancia um registrador
 //R = dado
-//Q = sa�da
+//Q = saida
 //Rin a decisao de atribuicao
 module regn(R, Rin, Clock, Q);
 	parameter n = 16;
@@ -103,7 +122,7 @@ module regn(R, Rin, Clock, Q);
 			Q <= R;
 endmodule
 
-//Q = sa�da
+//Q = saida
 //Dado1 = Registrador 1 da operacao
 //Dado2 = Registrador 2 da oepracao
 module Ula (Dado1, Dado2, iControl, Clock, Q);
