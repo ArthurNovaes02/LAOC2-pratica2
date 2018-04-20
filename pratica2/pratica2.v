@@ -1,5 +1,5 @@
 //Clocks separados, 1 para memória e Counter, outro para o processador
-module pratica2(KEY, SW, LW);
+module pratica21(KEY, SW, LW);
 	input [17:00]SW;
 	input [2:0]KEY;
 	output [17:00]LW;
@@ -10,7 +10,8 @@ module pratica2(KEY, SW, LW);
 	wire [15:0] Bus;
 	wire WREN;
 	wire done;
-	WREN = 1;
+	
+	assign WREN = 1;
 
 	//KEY[0] = Resetn
 	//KEY[1] = MClock

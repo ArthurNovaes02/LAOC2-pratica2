@@ -1,4 +1,4 @@
-module proc (DIN, Resetn, Clock, Run, Done, BusWires);
+module processor (DIN, Resetn, Clock, Run, Done, BusWires);
 	input [15:0] DIN;
 	input Resetn, Clock, Run;
 	output Done;
@@ -25,7 +25,7 @@ module proc (DIN, Resetn, Clock, Run, Done, BusWires);
 				begin
 					IRin = 1'b1;
 				end
-			2'b01: //define signals in time step 1
+			/*2'b01: //define signals in time step 1
 				case (I)
 				endcase
 			2'b10: //define signals in time step 2
@@ -33,19 +33,25 @@ module proc (DIN, Resetn, Clock, Run, Done, BusWires);
 				endcase
 			2'b11: //define signals in time step 3
 				case (I)
-				endcase
+				endcase*/
 		endcase
 	end
 
 	//Instancia os registradores
-	regn reg_0 (BusWires, Rin[0], Clock, R0);
-	regn reg_0 (BusWires, Rin[1], Clock, R1);
-	regn reg_0 (BusWires, Rin[2], Clock, R2);
-	regn reg_0 (BusWires, Rin[3], Clock, R3);
-	regn reg_0 (BusWires, Rin[4], Clock, R4);
-	regn reg_0 (BusWires, Rin[5], Clock, R5);
-	regn reg_0 (BusWires, Rin[6], Clock, R6);
-	regn reg_0 (BusWires, Rin[7], Clock, R7);
+	regn reg_R0 (BusWires, Rin[0], Clock, R0);
+	regn reg_R1 (BusWires, Rin[1], Clock, R1);
+	regn reg_R2 (BusWires, Rin[2], Clock, R2);
+	regn reg_R3 (BusWires, Rin[3], Clock, R3);
+	regn reg_R4 (BusWires, Rin[4], Clock, R4);
+	regn reg_R5 (BusWires, Rin[5], Clock, R5);
+	regn reg_R6 (BusWires, Rin[6], Clock, R6);
+	regn reg_R7 (BusWires, Rin[7], Clock, R7);
+	
+	regn reg_G (Q, Gin, Clock, G);
+	
+	regn reg_A (BusWire, Ain, Clock, A);
+	
+	regn reg_IR (DIN, IRin, Clock, IR);
 	//... instantiate other registers and the adder/subtracter unit
 	//... define the bus
 endmodule
@@ -72,19 +78,19 @@ module dec3to8(W, En, Y);
 	reg [0:7] Y;
 	always @(W or En)
 	begin
-	if (En == 1)
-		case (W)
-			3'b000: Y = 8'b10000000; //0
-			3'b001: Y = 8'b01000000; //1
-			3'b010: Y = 8'b00100000; //2
-			3'b011: Y = 8'b00010000; //3
-			3'b100: Y = 8'b00001000; //4
-			3'b101: Y = 8'b00000100; //5
-			3'b110: Y = 8'b00000010; //6
-			3'b111: Y = 8'b00000001; //7
-		endcase
-	else
-	Y = 8'b00000000;
+		if (En == 1)
+			case (W)
+				3'b000: Y = 8'b10000000; //0
+				3'b001: Y = 8'b01000000; //1
+				3'b010: Y = 8'b00100000; //2
+				3'b011: Y = 8'b00010000; //3
+				3'b100: Y = 8'b00001000; //4
+				3'b101: Y = 8'b00000100; //5
+				3'b110: Y = 8'b00000010; //6
+				3'b111: Y = 8'b00000001; //7
+			endcase
+		else
+			Y = 8'b00000000;
 	end
 endmodule
 
@@ -132,3 +138,44 @@ module Ula (Dado1, Dado2, iControl, Clock, Q);
 		endcase
 	end
 endmodule //Ula
+
+//  =: registradores
+// out = output
+// contr = controle
+module mux (bus, 
+				contrR, contrG, contrDin,
+				R, DIN, G,
+				clock);
+				
+	input contrDin, contrG;	// controle
+	input [7:0]contrR;		// controle
+	input [16:0]R[7:0];				// registradores de 16bits
+	input DIN, G;
+	output reg bus;					// BUS
+	
+	always @ (posedge Clock) begin
+		if (contrG == 1)
+			bus <= G;
+		else if (contrDin == 1)
+			bus <= DIN;
+		else if (contrR[0] == 1)
+			bus <= R[0];
+		else if (contrR[1] == 1)
+			bus <= R[1];
+		else if (contrR[2] == 1)
+			bus <= R[2];		
+		else if (contrR[3] == 1)
+			bus <= R[3];
+		else if (contrR[4] == 1)
+			bus <= R[4];
+		else if (contrR[5] == 1)
+			bus <= R[5];
+		else if (contrR[6] == 1)
+			bus <= R[6];
+		else if (contrR[7] == 1)
+			bus <= R[7];
+		else 
+			bus <= 16'b0000000000000000;
+	end
+	
+endmodule // multiplexador
